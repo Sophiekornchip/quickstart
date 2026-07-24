@@ -20,6 +20,7 @@ import * as speech from "./speech.js";
 import { persona, rotatePersona, line } from "./personas.js";
 import { randomFact } from "./interests.js";
 import * as rewards from "./rewards.js";
+import * as brain from "./brain.js";
 
 const COMPANION_INTERVAL_MS = 22000;   // chatter/fact cadence while engaged
 const CHECKIN_INTERVAL_MS = 60000;     // how often we ask for proof of life
@@ -73,15 +74,32 @@ export class Session {
 
   // ---- engagement loop ----
 
+  /** Context passed to the AI brain for generated lines. */
+  ctx() {
+    return {
+      questTitle: this.quest.title,
+      step: this.quest.steps[this.quest.stepIndex],
+      name: this.ui.userName,
+    };
+  }
+
   armCompanion() {
     clearInterval(this.timers.companion);
-    this.timers.companion = setInterval(() => {
+    brain.refillFeed(this.interests); // buy content ahead of the need
+    this.timers.companion = setInterval(async () => {
       if (!this.engaged) return; // feed paused ⇒ no free entertainment
+      brain.refillFeed(this.interests);
       // Alternate between persona companionship and special-interest drip.
       if (Math.random() < 0.5) {
-        this.narrate(line("during"));
+        // Generated banter when the brain is up; canned lines otherwise.
+        const generated =
+          brain.isOnline() && Math.random() < 0.6
+            ? await brain.banter(persona(), "during", this.ctx())
+            : null;
+        if (!this.engaged) return; // drifted while we were generating
+        this.narrate(generated || line("during"));
       } else {
-        this.narrate(randomFact(this.interests));
+        this.narrate(brain.nextFeedItem() || randomFact(this.interests));
       }
     }, COMPANION_INTERVAL_MS);
   }

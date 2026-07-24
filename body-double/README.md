@@ -14,7 +14,7 @@ generated only on completion and banked in a vault you can't preload.
 
 ## Try it now (browser HUD simulator)
 
-No build step, no dependencies:
+**Offline mode** — no build step, no dependencies, no account:
 
 ```bash
 cd body-double
@@ -22,9 +22,26 @@ python3 -m http.server 8080
 # open http://localhost:8080
 ```
 
+**AI mode** — the same app with a generative brain (Claude). Task breakdowns,
+the dopamine feed, and persona banter are generated fresh instead of drawn
+from seed content — infinite novelty, which for this product is the active
+ingredient:
+
+```bash
+cd body-double
+npm install
+ANTHROPIC_API_KEY=sk-ant-... npm start
+# open http://localhost:8080
+```
+
+The key stays on the server (`server.mjs`); the browser only talks to
+`/api/*`. If the brain is unreachable mid-session the app falls back to seed
+content without blocking — the moment of motivation is perishable, so nothing
+ever waits on the network.
+
 The browser app simulates the monocular glasses HUD. Everything the agent says
-is spoken aloud (Web Speech API) and mirrored in captions. All state stays in
-`localStorage` — nothing leaves your device.
+is spoken aloud (Web Speech API) and mirrored in captions. Your profile and
+progress stay in `localStorage` on your device.
 
 ## How a session works
 
@@ -65,12 +82,14 @@ Full citations in [`docs/SCIENCE.md`](docs/SCIENCE.md).
 body-double/
 ├── index.html          HUD shell (glasses display simulation)
 ├── css/hud.css         glanceable dark waveguide-style UI
+├── server.mjs          static host + AI brain proxy (Claude via @anthropic-ai/sdk)
 ├── js/
 │   ├── main.js         screens & wiring
 │   ├── session.js      body-double engine: cue → chatter → check-in → drift → reward
+│   ├── brain.js        AI client: generative quests/feed/banter + prefetch queue
 │   ├── personas.js     rotating personality engine (4 seed personas)
 │   ├── interests.js    special-interest content packs + held-back reward pool
-│   ├── tasks.js        quest builder (task → micro-steps playbook)
+│   ├── tasks.js        quest builder (AI-first, playbook fallback)
 │   ├── rewards.js      variable-ratio loot, XP, streaks, treat jar
 │   ├── speech.js       TTS layer (Web Speech API ⇒ glasses audio session)
 │   └── state.js        on-device persistence (localStorage)
@@ -79,14 +98,16 @@ body-double/
     └── GLASSES_INTEGRATION.md  path to Meta AI glasses & other wearables
 ```
 
-Everything is vanilla ES modules — the whole prototype runs offline. The seams
-where a production build swaps in real services are marked in the code:
+The client is vanilla ES modules and runs fully offline; the Node server adds
+the generative layer. Design notes on the AI seams:
 
-- **LLM brain** — `tasks.js` (task breakdown) and `personas.js` (line
-  generation) currently use playbooks/seed content; both define the exact
-  contract an LLM fills (e.g. Claude with a persona system prompt).
-- **Live audio clips** — `interests.js` seed packs stand in for podcast
-  segments / audio APIs matched to the user's niche interests.
+- **LLM brain** — `server.mjs` holds one stable persona system prompt (prompt-
+  cached) and three endpoints: `/api/quest` (structured-output task breakdown),
+  `/api/feed` (batched dopamine content, prefetched ahead of need), and
+  `/api/banter` (single persona lines). `brain.js` degrades to seed content on
+  any failure — the app never blocks on the network.
+- **Live audio clips** — `interests.js` seed packs and the generated feed stand
+  in for licensed podcast/audio segments matched to niche interests.
 - **Activity sensing** — the browser uses tap check-ins; glasses use voice,
   IMU head-gestures, and egocentric camera signals
   (see [`docs/GLASSES_INTEGRATION.md`](docs/GLASSES_INTEGRATION.md)).

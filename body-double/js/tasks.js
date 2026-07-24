@@ -82,7 +82,28 @@ const GENERIC = (title) => [
   "Push to a natural stopping point. Done beats perfect.",
 ];
 
+import * as brain from "./brain.js";
+
 let nextId = Date.now();
+
+/**
+ * AI-first quest builder: asks the brain for a persona-voiced breakdown,
+ * falls back to the local playbook instantly if the brain is offline/slow.
+ */
+export async function buildQuestSmart(title, name, personaStyle) {
+  const ai = await brain.quest(title, name, personaStyle);
+  if (ai?.steps?.length >= 2) {
+    return {
+      id: `q${nextId++}`,
+      title: ai.questTitle || title.trim(),
+      steps: ai.steps.slice(0, 6),
+      stepIndex: 0,
+      done: false,
+      createdAt: new Date().toISOString(),
+    };
+  }
+  return buildQuest(title);
+}
 
 export function buildQuest(title) {
   const play = PLAYBOOK.find((p) => p.match.test(title));

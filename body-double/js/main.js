@@ -4,8 +4,9 @@ import * as state from "./state.js";
 import * as speech from "./speech.js";
 import { persona, line } from "./personas.js";
 import { INTEREST_PACKS } from "./interests.js";
-import { buildQuest } from "./tasks.js";
+import { buildQuestSmart } from "./tasks.js";
 import { Session } from "./session.js";
+import * as brain from "./brain.js";
 
 const $ = (id) => document.getElementById(id);
 const screens = ["onboard", "home", "session", "reward"];
@@ -113,12 +114,15 @@ function goHome(greet = false) {
   if (greet) agentSay(line("greet", { name: state.get().name }));
 }
 
-$("quest-form").onsubmit = (e) => {
+$("quest-form").onsubmit = async (e) => {
   e.preventDefault();
   const title = $("quest-input").value.trim();
   if (!title) return;
   $("quest-input").value = "";
-  const quest = buildQuest(title);
+  if (brain.isOnline()) {
+    $("agent-line").textContent = `${persona().emoji} chopping "${title}" into embarrassingly small pieces...`;
+  }
+  const quest = await buildQuestSmart(title, state.get().name, persona().style);
   const s = state.get();
   s.quests.push(quest);
   state.save();
@@ -222,7 +226,7 @@ $("btn-mute").onclick = () => {
 
 // ---- boot ----
 
-(function boot() {
+(async function boot() {
   const s = state.get();
   speech.setMuted(s.muted);
   $("btn-mute").textContent = s.muted ? "🔇" : "🔊";
@@ -234,4 +238,9 @@ $("btn-mute").onclick = () => {
   } else {
     show("onboard");
   }
+  const ai = await brain.detect();
+  document.querySelector(".hud-hint").textContent = ai
+    ? "voice-first · AI brain online — generative quests & feed"
+    : "voice-first · offline mode — seed content (run server.mjs with an API key to go generative)";
+  if (ai && s.interests.length) brain.refillFeed(s.interests);
 })();

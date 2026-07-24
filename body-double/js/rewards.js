@@ -14,6 +14,7 @@
 
 import { randomReward } from "./interests.js";
 import * as state from "./state.js";
+import * as brain from "./brain.js";
 
 const XP_TABLE = { step: 10, quest: 50, streakBonus: 25 };
 
@@ -48,7 +49,10 @@ export function stepXp() {
  */
 export function questPayout(interests) {
   const tier = rollRarity();
-  const content = randomReward(interests);
+  // Prefer a freshly generated, never-heard-before reward from the AI vault;
+  // seeds are the offline fallback. Either way it was only minted now, on
+  // completion — the no-skip contingency is structural, not cosmetic.
+  const content = brain.nextReward() || randomReward(interests);
   const streak = state.recordQuestComplete();
   let xp = XP_TABLE.quest * (tier.rarity === "legendary" ? 4 : tier.rarity === "epic" ? 2 : 1);
   if (streak > 1) xp += XP_TABLE.streakBonus * Math.min(streak, 7);
