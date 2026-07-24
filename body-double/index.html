@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#05070d" />
-  <title>Sidequest — your AI body double</title>
+  <title>Doppel — your AI body double</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🪩</text></svg>" />
   <link rel="stylesheet" href="css/hud.css" />
 </head>
@@ -17,7 +17,7 @@
     <!-- Persistent glance bar: always visible, always tiny. -->
     <header id="glance" class="glance">
       <span id="glance-persona" class="glance-persona" title="current persona">🎙️</span>
-      <span id="glance-step" class="glance-step">sidequest</span>
+      <span id="glance-step" class="glance-step">doppel</span>
       <span class="glance-right">
         <span id="glance-streak" class="chip" title="streak">🔥 0</span>
         <span id="glance-xp" class="chip" title="XP">✦ 0</span>
@@ -27,8 +27,8 @@
     <!-- Captions: everything the agent says is mirrored here (audio-first UX). -->
     <main id="stage" class="stage">
       <section id="screen-onboard" class="screen">
-        <h1 class="wordmark">SIDEQUEST</h1>
-        <p class="tagline">an AI body double that finds the dopamine for you</p>
+        <h1 class="wordmark">DOPPEL</h1>
+        <p class="tagline">your AI body double — it finds the dopamine so you don't have to</p>
         <div class="onboard-block">
           <label class="field-label" for="user-name">what should I call you?</label>
           <input id="user-name" class="field" type="text" maxlength="24" placeholder="your name" autocomplete="off" />
@@ -47,12 +47,13 @@
         <form id="quest-form" class="quest-form">
           <input id="quest-input" class="field" type="text" maxlength="80"
                  placeholder="what are you avoiding right now?" autocomplete="off" />
-          <button class="btn btn-primary" type="submit">make it a quest</button>
+          <button class="btn btn-primary" type="submit">make it a sidequest</button>
         </form>
         <div class="home-footer">
           <button id="btn-treatjar" class="btn btn-ghost">🫙 treat jar</button>
           <button id="btn-persona" class="btn btn-ghost">🎭 who's on shift?</button>
           <button id="btn-science" class="btn btn-ghost">🧪 why this works</button>
+          <button id="btn-sickday" class="btn btn-ghost">🛌 sick day</button>
         </div>
       </section>
 

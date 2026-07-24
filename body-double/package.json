@@ -1,8 +1,8 @@
 {
-  "name": "sidequest",
-  "version": "0.2.0",
+  "name": "doppel",
+  "version": "0.3.0",
   "private": true,
-  "description": "AI body double for ADHD — voice-first, glasses-native, dopamine-aware",
+  "description": "Doppel — your AI body double. Glasses-native ADHD companion; it finds the dopamine so you don't have to.",
   "type": "module",
   "scripts": {
     "start": "node server.mjs"

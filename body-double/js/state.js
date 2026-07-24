@@ -9,9 +9,10 @@ const defaults = () => ({
   xp: 0,
   streak: 0,
   lastQuestDay: null,     // "YYYY-MM-DD" of last completed quest, for streaks
-  treatJar: [],           // earned-but-unopened rewards (the locked vault)
+  treatJar: [],           // trophy shelf: record of earned drops
   quests: [],             // { id, title, steps: [..], stepIndex, done, createdAt }
   muted: false,
+  sickDay: false,         // contingencies suspended, companionship stays
 });
 
 let state = load();
@@ -50,12 +51,26 @@ export function addXp(amount) {
   return state.xp;
 }
 
-/** Record a completed quest and roll the streak. Returns the new streak. */
+/**
+ * Record a completed quest and roll the streak.
+ * Streaks-with-grace: a missed day DENTS the streak (−1 per missed day),
+ * it never zeroes it. Rigid streaks cause abandonment-after-break; graceful
+ * decay preserves the habit identity.
+ */
 export function recordQuestComplete() {
   const today = new Date().toISOString().slice(0, 10);
   if (state.lastQuestDay !== today) {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    state.streak = state.lastQuestDay === yesterday ? state.streak + 1 : 1;
+    if (state.lastQuestDay) {
+      const gapDays = Math.round(
+        (Date.parse(today) - Date.parse(state.lastQuestDay)) / 86400000
+      );
+      state.streak =
+        gapDays <= 1
+          ? state.streak + 1
+          : Math.max(1, state.streak - (gapDays - 1));
+    } else {
+      state.streak = 1;
+    }
     state.lastQuestDay = today;
   }
   save();

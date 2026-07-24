@@ -137,6 +137,7 @@ function startSession(quest) {
   $("caption").innerHTML = "";
   const ui = {
     userName: state.get().name,
+    gentle: state.get().sickDay,
     caption,
     step: (text, i, n) => {
       $("session-step").textContent = text;
@@ -172,7 +173,27 @@ $("btn-done-step").onclick = () => {
   state.save();
   refreshGlance();
 };
-$("btn-stuck").onclick = () => session?.stuck();
+// Options, not orders: stalling gets 2–3 concrete choices — choice restores
+// autonomy and reduces demand-avoidance.
+$("btn-stuck").onclick = () => {
+  if (!session) return;
+  session.checkin();
+  openModal(`<h3>🧱 Wall detected. Pick your fighter:</h3>
+    <div style="display:flex;flex-direction:column;gap:0.6rem">
+      <button id="opt-shrink" class="btn btn-primary">🤏 shrink the step — give me a tinier version</button>
+      <button id="opt-ninety" class="btn btn-primary">⏱ 90-second bad version — perfectionism is canceled</button>
+      <button id="opt-swap" class="btn btn-ghost">🔀 wrong quest — take me back to the board</button>
+    </div>`);
+  $("opt-shrink").onclick = () => { closeModal(); session?.stuck(); };
+  $("opt-ninety").onclick = () => { closeModal(); session?.ninetySecondRun(); };
+  $("opt-swap").onclick = () => {
+    closeModal();
+    session?.stop();
+    session = null;
+    state.save();
+    goHome();
+  };
+};
 $("btn-bail").onclick = () => {
   session?.stop();
   session = null;
@@ -204,7 +225,10 @@ function openModal(html) {
   $("modal-body").innerHTML = html;
   $("modal").classList.remove("hidden");
 }
-$("btn-modal-close").onclick = () => $("modal").classList.add("hidden");
+function closeModal() {
+  $("modal").classList.add("hidden");
+}
+$("btn-modal-close").onclick = closeModal;
 
 $("btn-treatjar").onclick = () => {
   const jar = state.get().treatJar.slice(-10).reverse();
@@ -240,6 +264,23 @@ $("btn-persona").onclick = () => {
     <p style="color:#6f8f7f">Personas rotate on their own schedule — you don't pick, that's part of the novelty. Someone else might clock in mid-quest.</p>`);
 };
 
+// ---- sick day ----
+// Contingencies suspended, companionship stays. Persistence applies to
+// tasks, never to a person having a bad day.
+
+function renderSickDay() {
+  $("btn-sickday").textContent = state.get().sickDay ? "🛌 sick day: ON" : "🛌 sick day";
+}
+
+$("btn-sickday").onclick = () => {
+  const on = !state.get().sickDay;
+  state.update({ sickDay: on });
+  renderSickDay();
+  agentSay(on
+    ? "Sick-day mode on. No check-ins, no feed-pausing, no pressure — I'm just company today. Rest counts."
+    : "Sick-day mode off. Welcome back, champ. The mugs missed you.");
+};
+
 // ---- mute ----
 
 $("btn-mute").onclick = () => {
@@ -256,6 +297,7 @@ $("btn-mute").onclick = () => {
   speech.setMuted(s.muted);
   $("btn-mute").textContent = s.muted ? "🔇" : "🔊";
   renderInterestPicker();
+  renderSickDay();
   refreshGlance();
   if (s.name) {
     $("user-name").value = s.name;

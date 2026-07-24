@@ -48,6 +48,8 @@ export class Session {
     this.engaged = true;
     this.awaitingCheckin = false;
     this.chatty = true; // quiet mode = ambient presence, check-ins only
+    this.gentle = Boolean(ui.gentle); // sick-day mode: contingencies off, company stays
+    this.driftCount = 0;
     this.startedAt = Date.now();
     this.lastAnchorAt = Date.now();
     this.timers = { companion: null, checkin: null, grace: null, hyperfocus: null };
@@ -69,7 +71,11 @@ export class Session {
     this.ui.personaChanged(p);
     this.cueStep(true);
     this.armCompanion();
-    this.armCheckin();
+    // Sick-day mode: no check-ins, no drift, no feed-pausing — the double
+    // just keeps you company. Persistence applies to tasks, never to a
+    // person having a bad day.
+    if (!this.gentle) this.armCheckin();
+    else this.narrate("Sick-day rules today: no check-ins, no pressure. I'm just here.");
     this.armHyperfocusGuard();
     this.setFeed("live");
   }
@@ -180,9 +186,22 @@ export class Session {
   onDrift() {
     this.engaged = false;
     this.awaitingCheckin = false;
+    this.driftCount += 1;
     this.ui.attention(true);
     this.setFeed("paused");
     speech.stopSpeaking();
+    // Persona shifts respond to flagging engagement, not random noise:
+    // repeated drift means this voice stopped working — send in a new one.
+    if (this.driftCount >= 2) {
+      this.driftCount = 0;
+      const p = rotatePersona();
+      this.ui.personaChanged(p);
+      this.narrate(
+        `${p.name} tapping in — fresh voice, same deal. ` + line("drift"),
+        { interrupt: true }
+      );
+      return;
+    }
     this.narrate(line("drift"), { interrupt: true });
   }
 
@@ -223,6 +242,21 @@ export class Session {
     this.narrate(line("stuck"));
   }
 
+  /** Options, not orders: the 90-second deliberately-bad version. */
+  ninetySecondRun() {
+    this.checkin();
+    this.narrate(
+      "New rule: ninety seconds, done badly on purpose. Perfectionism is on break. Go — I'm counting.",
+      { interrupt: true }
+    );
+    clearTimeout(this.timers.ninety);
+    this.timers.ninety = setTimeout(() => {
+      if (this.engaged) {
+        this.narrate("Ninety seconds! Whatever happened, it counts. Mark the step done or keep rolling — dealer's choice.");
+      }
+    }, 90000);
+  }
+
   complete() {
     this.quest.done = true;
     this.stop(false);
@@ -237,6 +271,7 @@ export class Session {
     clearInterval(this.timers.checkin);
     clearTimeout(this.timers.grace);
     clearTimeout(this.timers.hyperfocus);
+    clearTimeout(this.timers.ninety);
     this.ui.attention(false);
     this.setFeed("idle");
     if (speakFarewell) {

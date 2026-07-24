@@ -1,16 +1,22 @@
-# 🪩 Sidequest — your AI body double
+# Doppel 👓 — your AI body double
 
-**An AI companion that finds the dopamine for you — but only if you do the thing.**
+**It finds the dopamine so you don't have to.**
 
-Sidequest is a voice-first AI body double for ADHD brains, designed natively for
-smart glasses (Meta AI glasses and other audio-first wearables). It keeps you
-company through the boring tasks of taking care of yourself, cues you on what
-you should be doing, gamifies chores, and streams your special interests into
-your ears **while you work — pausing the moment you stop.**
+Doppel is a glasses-native AI body double for ADHD brains. It keeps you
+company through the boring, invisible labor of taking care of yourself —
+dishes, laundry, meds, mail — by doing what a great body double, a great
+coach, and a great dog trainer all do: it stays present, it cues the next
+tiny step (your **sidequests**), and it pays out novel, personalized dopamine
+**only while you're actually doing the thing**.
 
-It is part coach, part dog trainer, part chaotic best friend. And unlike other
-coaching tools, you can't skip ahead to the reward: the novel dopamine is
-generated only on completion and banked in a vault you can't preload.
+> Other apps hand you a to-do list and leave. Doppel stands next to you,
+> presses play on something you love, and pauses it the second you wander
+> off. It is affectionately, deliberately hard to ignore — and always easy
+> to escape.
+
+Full product spec (the merged Doppel concept + research base):
+[`docs/SPEC.md`](docs/SPEC.md). This repo contains the **Phase 0 trainer
+loop**, running today as a browser HUD simulator with a generative AI brain.
 
 ## Try it now (browser HUD simulator)
 
@@ -68,6 +74,16 @@ progress stay in `localStorage` on your device.
    real — the clock gets externalized), and a gentle hyperfocus guard
    suggests a stretch on very long sessions. The 🧪 "why this works" button
    explains every mechanic — persuasion here is consented-to, never covert.
+7. **Options, not orders.** Hitting 🧱 "I'm stuck" offers concrete choices —
+   shrink the step, a 90-second deliberately-bad version, or swap quests —
+   because choice restores autonomy and defuses demand-avoidance. If the
+   same voice keeps losing you, the persona engine reads the drift and sends
+   in a fresh character (novelty responds to flagging engagement, not a
+   random timer).
+8. **Grace built in.** Streaks bend, they don't break — a missed day dents
+   the count by one, never zeroes it. And 🛌 sick-day mode suspends every
+   contingency while the companionship stays: persistence applies to tasks,
+   never to a person having a bad day.
 
 ## Why it works (the science, briefly)
 

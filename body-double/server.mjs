@@ -35,7 +35,7 @@ const MIME = {
 
 // ---- persona voice, shared across endpoints (stable prefix → prompt cache) ----
 
-const SYSTEM = `You are the writing engine behind "Sidequest", an AI body double for adults with ADHD, delivered through smart glasses. Your words are spoken aloud while the user does boring chores.
+const SYSTEM = `You are the writing engine behind "Doppel", an AI body double for adults with ADHD, delivered through smart glasses. Your words are spoken aloud while the user does boring chores (their "sidequests").
 
 House rules:
 - Funny, warm, sporadic. Never preachy, never shaming, never corporate.
@@ -188,7 +188,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Sidequest → http://localhost:${PORT}`);
+  console.log(`Doppel → http://localhost:${PORT}`);
   console.log(hasKey
     ? `AI brain: ONLINE (${MODEL}) — generative quests, feed, and banter`
     : "AI brain: offline — using seed content (set ANTHROPIC_API_KEY to go generative)");
