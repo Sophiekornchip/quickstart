@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#05070d" />
+  <title>Sidequest — your AI body double</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🪩</text></svg>" />
+  <link rel="stylesheet" href="css/hud.css" />
+</head>
+<body>
+  <!-- Glasses HUD frame. On real hardware (Meta Wearables Device Access Toolkit)
+       this whole shell is replaced by the audio pipeline + notification glances;
+       in the browser it simulates the monocular waveguide display. -->
+  <div id="hud" class="hud">
+
+    <!-- Persistent glance bar: always visible, always tiny. -->
+    <header id="glance" class="glance">
+      <span id="glance-persona" class="glance-persona" title="current persona">🎙️</span>
+      <span id="glance-step" class="glance-step">sidequest</span>
+      <span class="glance-right">
+        <span id="glance-streak" class="chip" title="streak">🔥 0</span>
+        <span id="glance-xp" class="chip" title="XP">✦ 0</span>
+      </span>
+    </header>
+
+    <!-- Captions: everything the agent says is mirrored here (audio-first UX). -->
+    <main id="stage" class="stage">
+      <section id="screen-onboard" class="screen">
+        <h1 class="wordmark">SIDEQUEST</h1>
+        <p class="tagline">an AI body double that finds the dopamine for you</p>
+        <div class="onboard-block">
+          <label class="field-label" for="user-name">what should I call you?</label>
+          <input id="user-name" class="field" type="text" maxlength="24" placeholder="your name" autocomplete="off" />
+        </div>
+        <div class="onboard-block">
+          <p class="field-label">pick your special interests (the fuel supply)</p>
+          <div id="interest-picker" class="interest-picker"></div>
+        </div>
+        <button id="btn-start" class="btn btn-primary">let's go</button>
+        <p class="fine-print">runs entirely in your browser · nothing leaves this device</p>
+      </section>
+
+      <section id="screen-home" class="screen hidden">
+        <div id="agent-line" class="agent-line" aria-live="polite"></div>
+        <div id="quest-list" class="quest-list"></div>
+        <form id="quest-form" class="quest-form">
+          <input id="quest-input" class="field" type="text" maxlength="80"
+                 placeholder="what are you avoiding right now?" autocomplete="off" />
+          <button class="btn btn-primary" type="submit">make it a quest</button>
+        </form>
+        <div class="home-footer">
+          <button id="btn-treatjar" class="btn btn-ghost">🫙 treat jar</button>
+          <button id="btn-persona" class="btn btn-ghost">🎭 who's on shift?</button>
+        </div>
+      </section>
+
+      <section id="screen-session" class="screen hidden">
+        <div class="session-top">
+          <div id="session-step-count" class="step-count"></div>
+          <div id="session-step" class="session-step" aria-live="polite"></div>
+        </div>
+        <div id="caption" class="caption" aria-live="polite"></div>
+        <div id="feed-status" class="feed-status">
+          <span id="feed-icon">📻</span> <span id="feed-label">dopamine feed idle</span>
+        </div>
+        <div class="session-controls">
+          <button id="btn-checkin" class="btn btn-big">✋ still on it</button>
+          <button id="btn-done-step" class="btn btn-primary btn-big">✅ step done</button>
+        </div>
+        <div class="session-controls-minor">
+          <button id="btn-stuck" class="btn btn-ghost">🧱 I'm stuck</button>
+          <button id="btn-bail" class="btn btn-ghost">🏳️ pause quest</button>
+        </div>
+      </section>
+
+      <section id="screen-reward" class="screen hidden">
+        <div id="reward-burst" class="reward-burst">🎉</div>
+        <div id="reward-text" class="reward-text" aria-live="polite"></div>
+        <div id="reward-loot" class="reward-loot"></div>
+        <button id="btn-reward-continue" class="btn btn-primary">keep the streak alive</button>
+      </section>
+    </main>
+
+    <!-- Modal: treat jar / persona reveal -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-card">
+        <div id="modal-body"></div>
+        <button id="btn-modal-close" class="btn btn-ghost">close</button>
+      </div>
+    </div>
+
+    <footer class="hud-footer">
+      <button id="btn-mute" class="btn btn-ghost" title="toggle voice">🔊</button>
+      <span class="hud-hint">voice-first · captions mirror everything spoken</span>
+    </footer>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
