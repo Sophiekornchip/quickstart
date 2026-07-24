@@ -26,6 +26,12 @@ const COMPANION_INTERVAL_MS = 22000;   // chatter/fact cadence while engaged
 const CHECKIN_INTERVAL_MS = 60000;     // how often we ask for proof of life
 const CHECKIN_GRACE_MS = 20000;        // silence tolerated before feed pauses
 const PERSONA_SHIFT_CHANCE = 0.3;      // per completed step
+const TIME_ANCHOR_MS = 5 * 60000;      // spoken elapsed-time cue (time blindness:
+                                       // ADHD time perception deficits ≈ d 0.69 —
+                                       // externalize the clock, don't assume one)
+const HYPERFOCUS_GUARD_MS = 50 * 60000; // gentle boundary cue on long sessions —
+                                        // hyperfocus impairs self-generated stop
+                                        // signals (Ashinoff & Abu-Akel, 2021)
 
 export class Session {
   /**
@@ -41,7 +47,10 @@ export class Session {
     this.ui = ui;
     this.engaged = true;
     this.awaitingCheckin = false;
-    this.timers = { companion: null, checkin: null, grace: null };
+    this.chatty = true; // quiet mode = ambient presence, check-ins only
+    this.startedAt = Date.now();
+    this.lastAnchorAt = Date.now();
+    this.timers = { companion: null, checkin: null, grace: null, hyperfocus: null };
     this.speaking = Promise.resolve();
   }
 
@@ -61,7 +70,32 @@ export class Session {
     this.cueStep(true);
     this.armCompanion();
     this.armCheckin();
+    this.armHyperfocusGuard();
     this.setFeed("live");
+  }
+
+  /** Presence dial: quiet keeps the double there but nearly silent. */
+  setChatty(on) {
+    this.chatty = on;
+    this.narrate(on
+      ? "Chatty mode back on. You missed me, admit it."
+      : "Going quiet. Still here, still watching your six — I'll only pipe up for check-ins.");
+  }
+
+  elapsedMinutes() {
+    return Math.round((Date.now() - this.startedAt) / 60000);
+  }
+
+  /** Gentle boundary cue on very long sessions — hyperfocus can't self-stop. */
+  armHyperfocusGuard() {
+    clearTimeout(this.timers.hyperfocus);
+    this.timers.hyperfocus = setTimeout(() => {
+      this.narrate(
+        `Boundary check, not a nag: we've been at this ${this.elapsedMinutes()} minutes. ` +
+        "Water, stretch, look at something far away. The quest will hold for ninety seconds."
+      );
+      this.armHyperfocusGuard(); // re-arm; next cue in another 50 min
+    }, HYPERFOCUS_GUARD_MS);
   }
 
   cueStep(first = false) {
@@ -89,6 +123,19 @@ export class Session {
     this.timers.companion = setInterval(async () => {
       if (!this.engaged) return; // feed paused ⇒ no free entertainment
       brain.refillFeed(this.interests);
+      // Time anchor: ADHD time perception is unreliable — externalize the clock.
+      if (Date.now() - this.lastAnchorAt > TIME_ANCHOR_MS) {
+        this.lastAnchorAt = Date.now();
+        this.narrate(
+          `Time check: ${this.elapsedMinutes()} minutes in, step ${this.quest.stepIndex + 1} of ${this.quest.steps.length}. Still moving.`
+        );
+        return;
+      }
+      // Quiet mode: ambient presence — an occasional feed drip, no banter.
+      if (!this.chatty) {
+        if (Math.random() < 0.35) this.narrate(brain.nextFeedItem() || randomFact(this.interests));
+        return;
+      }
       // Alternate between persona companionship and special-interest drip.
       if (Math.random() < 0.5) {
         // Generated banter when the brain is up; canned lines otherwise.
@@ -189,6 +236,7 @@ export class Session {
     clearInterval(this.timers.companion);
     clearInterval(this.timers.checkin);
     clearTimeout(this.timers.grace);
+    clearTimeout(this.timers.hyperfocus);
     this.ui.attention(false);
     this.setFeed("idle");
     if (speakFarewell) {

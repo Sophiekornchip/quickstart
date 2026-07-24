@@ -62,19 +62,27 @@ progress stay in `localStorage` on your device.
    there is). Finishing the quest rolls loot (common → legendary), rolls your
    streak, and unlocks a held-back, extra-juicy reward drop that goes into
    your 🫙 treat jar.
+6. **Presence, tuned to you.** 🤫 quiet mode keeps the double there but
+   nearly silent (ambient presence is the most-requested, least-served mode).
+   The agent speaks time anchors every few minutes (ADHD time blindness is
+   real — the clock gets externalized), and a gentle hyperfocus guard
+   suggests a stretch on very long sessions. The 🧪 "why this works" button
+   explains every mechanic — persuasion here is consented-to, never covert.
 
 ## Why it works (the science, briefly)
 
-Full citations in [`docs/SCIENCE.md`](docs/SCIENCE.md).
+Full primary-source citations, evidence tiers, and honest hedges in
+[`docs/SCIENCE.md`](docs/SCIENCE.md).
 
-| Mechanic | Research basis |
-| --- | --- |
-| Body doubling / presence | Task initiation & persistence improve with a co-present other; the double doesn't help, it *witnesses* |
-| Micro-steps ("shaping") | Implementation intentions (Gollwitzer 1999); successive approximation from behavioral training |
-| Feed pauses when you stop | Contingent reinforcement — stimulation yoked to the target behavior |
-| Special-interest feed during chores | Temptation bundling (Milkman et al. 2014); optimal-stimulation accounts of ADHD (Zentall) |
-| Unpredictable loot & personas | Variable-ratio schedules (Ferster & Skinner 1957); novelty triggers dopaminergic response (Bunzeck & Düzel 2006) |
-| No skipping to the reward | Precommitment devices; reward prediction error needs genuine contingency |
+| Mechanic | Research basis | Evidence |
+| --- | --- | --- |
+| Body doubling / presence | Eagle et al. 2023/2024 (ASSETS/TACCESS) continuum model; AI doubles pilot-validated (Ara et al. 2025) | emerging |
+| Micro-steps at the point of performance | Implementation intentions, d=.65 (Gollwitzer & Sheeran 2006); Barkley 1997 | strong |
+| Feed pauses when you stop | Premack principle; contingency management in ADHD | strong |
+| Special-interest feed during chores | Temptation bundling (Milkman 2014; N=6,792 replication Kirgios 2020); delay-aversion mitigation (Antrop 2006) | strong |
+| Background stimulation helps ADHD | Zentall 1983; Söderlund 2007; 2024 JAACAP meta-analysis (small effect, ADHD-specific) | moderate |
+| Unpredictable, earned-only rewards | Variable-ratio schedules (Ferster & Skinner 1957); reward prediction error (Schultz 1997) | strong mechanism |
+| Spoken time anchors, hyperfocus guard | ADHD time-perception meta-analysis 2024 (≈d 0.69); Ashinoff & Abu-Akel 2021 | moderate |
 
 ## Architecture
 
@@ -94,8 +102,9 @@ body-double/
 │   ├── speech.js       TTS layer (Web Speech API ⇒ glasses audio session)
 │   └── state.js        on-device persistence (localStorage)
 └── docs/
-    ├── SCIENCE.md              research grounding, with citations
-    └── GLASSES_INTEGRATION.md  path to Meta AI glasses & other wearables
+    ├── SCIENCE.md              research grounding — primary-source citations, evidence tiers, ethics line
+    ├── PRODUCT.md              competitive landscape, design principles, the 5 traps
+    └── GLASSES_INTEGRATION.md  real SDK landscape: Meta DAT, Ray-Ban Display, Even G2, voice stack
 ```
 
 The client is vanilla ES modules and runs fully offline; the Node server adds

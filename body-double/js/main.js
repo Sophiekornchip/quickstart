@@ -162,6 +162,11 @@ function startSession(quest) {
 }
 
 $("btn-checkin").onclick = () => session?.checkin();
+$("btn-quiet").onclick = () => {
+  if (!session) return;
+  session.setChatty(!session.chatty);
+  $("btn-quiet").textContent = session.chatty ? "🤫 quiet mode" : "📢 chatty mode";
+};
 $("btn-done-step").onclick = () => {
   session?.stepDone();
   state.save();
@@ -207,6 +212,26 @@ $("btn-treatjar").onclick = () => {
     ? jar.map((d) => `<li>${d.flair} ${d.content}</li>`).join("")
     : "<li>Empty. The jar only fills when quests finish — no shortcuts, that's the whole point.</li>";
   openModal(`<h3>🫙 Treat jar</h3><ul>${items}</ul>`);
+};
+
+// Transparent persuasion: the ethics literature's bright line is that users
+// consent to the mechanics knowingly. So the app explains itself, plainly.
+$("btn-science").onclick = () => {
+  openModal(`<h3>🧪 Why this works (no secrets)</h3>
+    <p><b>The steps are tiny on purpose.</b> Concrete "when X, do Y" micro-plans
+    roughly double follow-through in meta-analyses (implementation intentions,
+    d≈0.65). Starting is the wall; we shrink the wall.</p>
+    <p><b>The feed pauses when you stop</b> because entertainment that's
+    contingent on the task is what makes boring tasks tolerable (temptation
+    bundling — raised gym attendance 10–50% in trials; Premack's principle).</p>
+    <p><b>Rewards are unpredictable</b> because surprise is what dopamine
+    responds to (reward prediction error). You can't preview them — that would
+    kill the surprise — but you can always walk away: pausing costs nothing,
+    streaks break silently, nothing here shames you. Ever.</p>
+    <p><b>The personas rotate</b> because novelty itself is stimulating for
+    ADHD brains, and any fixed pattern habituates fast.</p>
+    <p>Every mechanic serves the quest <i>you</i> chose — never our screen-time.
+    Full citations: docs/SCIENCE.md in the repo.</p>`);
 };
 
 $("btn-persona").onclick = () => {

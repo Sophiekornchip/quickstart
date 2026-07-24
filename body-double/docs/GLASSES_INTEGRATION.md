@@ -1,97 +1,164 @@
-# Sidequest on smart glasses
+# Sidequest on smart glasses — engineering path
 
-Sidequest's native home is your face, not your phone. The browser app in this
-repo is a **HUD simulator**; this document is the engineering path to Meta AI
-glasses and other wearables.
+Grounded in the actual developer-platform landscape as of mid-2026. The
+browser app in this repo is a HUD simulator; this is the plan for real
+hardware. Confidence flags are noted where vendor docs are preview-stage.
 
 ## Why glasses are the right body double
 
-A body double has to be *ambient*. The phone is the enemy form factor — every
-glance at it is a portal to the exact dopamine loops Sidequest competes with.
-Glasses give us:
+A body double has to be *ambient* and live at the **point of performance**
+(Barkley: ADHD supports work when they fire at the exact time and place of
+the behavior — see `SCIENCE.md` §2). The phone is the enemy form factor:
+every glance at it is a portal to the exact dopamine loops Sidequest competes
+with. Glasses give us open-ear audio while hands work, hands-free
+confirmation, and (on display models) a one-line glance.
 
-- **Open-ear audio, always on**: the companion talks while your hands work.
-- **Hands-free confirmation**: "yep" / a head nod answers a check-in.
-- **Egocentric sensing**: the device can *see the task* — the true unlock.
-- **Glanceable HUD (display models)**: one line of "current step," nothing more.
+## Target platform 1: Meta glasses via the Wearables Device Access Toolkit
 
-## Target platforms
+**Status (mid-2026):** Developer Preview (SDK ~v0.8.0). Build and test on
+real hardware today; distribute to release channels of up to 100 testers;
+public publishing expected later in 2026 (currently limited to select
+partners like Be My Eyes and Twitch). Plan: build now, beta via release
+channel, ship when publishing opens.
 
-### 1. Meta AI glasses (Ray-Ban Meta, Ray-Ban Display, Oakley Meta HSTN)
+**Architecture:** phone-centric. Sidequest runs as an iOS/Android app linking
+the DAT SDK (`facebook/meta-wearables-dat-ios`, Swift PM; Android via Maven —
+`mwdat-core`, `mwdat-camera`, `mwdat-display`, `mwdat-mockdevice`). The
+glasses are a peripheral; the Meta AI app brokers the connection. There is no
+on-glasses runtime — which is fine, because our session engine
+(`js/session.js`) is already a phone-side event loop over
+{cue, chatter, check-in, drift, done}.
 
-Meta's **Wearables Device Access Toolkit** (announced at Connect 2025, preview
-late 2025) lets third-party mobile apps access glasses sensors — camera,
-open-ear audio, microphones — with the phone doing the compute. Sidequest maps
-cleanly onto it:
+**Capability mapping (from the actual docs):**
 
-| Sidequest function | Toolkit capability |
+| Sidequest function | DAT reality |
 | --- | --- |
-| Companion voice + dopamine feed | Audio session streamed to open-ear speakers |
-| Voice check-in ("still on it?" → "yep") | Mic access + wake-word/ASR on phone |
-| Task-activity detection | Camera frames → on-phone vision model ("are hands at the sink?") |
-| Step cue on Display models | Notification glance / HUD text line |
-| "Feed pauses when you stop" | Pause audio session on inactivity signal |
+| Companion voice + dopamine feed | Standard Bluetooth **A2DP** (44.1/48 kHz stereo) from the phone app — works today, no DAT required |
+| Voice check-in ("still on it?" → "yep") | **HFP** mic path — but A2DP and HFP are mutually exclusive; opening the mic drops audio to 8 kHz mono with a ~2 s route-settling delay |
+| Task-activity detection | DAT camera streaming (12 MP ultra-wide POV) → on-phone vision model |
+| Step cue on Ray-Ban Display | `mwdat-display` (opened May 14, 2026): text, images, lists, buttons, video on the 600×600 monocular display |
+| Silent "done" confirmation | Neural Band **predefined gestures** (pinch/swipe — no custom gestures, no raw EMG) |
 
-Architecture: **Sidequest runs as the phone app** (iOS/Android), the glasses
-are its face-mounted I/O. The session engine in `js/session.js` ports directly
-— it's already an event loop over {cue, chatter, check-in, drift, done}.
+**The load-bearing constraint — the A2DP/HFP trade-off:** continuous hi-fi
+feed audio and an open microphone cannot coexist. So Sidequest's interaction
+grammar on Meta hardware is: *speak briefly, then release the mic*. Check-ins
+are short mic windows (or better, a Neural Band pinch — zero audio cost,
+and silent confirmation beats talking to yourself in public). The feed
+resumes in stereo the moment the mic closes.
 
-### 2. Other wearables
+**Second path — Web Apps SDK (Ray-Ban Display):** plain HTML/CSS/JS hosted
+on any HTTPS URL, loaded through the Meta AI app; gets motion/orientation
+sensors, phone GPS, Neural Band + captouch input, and local storage; no app
+store or review yet (share by URL). Sidequest's HUD simulator is *already*
+vanilla HTML/JS — the "current step + feed status" glance view ports almost
+directly. This is the fastest demo path on real Meta display hardware.
 
-- **Even Realities G1 / Vuzix / INMO** (micro-LED HUD glasses): text-glance SDKs
-  fit the one-line step display; audio via BT.
-- **Audio-only earbuds** fallback: the entire product works with zero display —
-  the HUD is sugar, the audio loop is the product.
-- **Watch companions**: haptic check-in taps + streak glance.
+**Not available via DAT (design around):** wake-word hooks, notification
+injection, raw IMU (DAT path), background-execution guarantees, Meta AI
+access.
 
-## Interaction mapping (browser → glasses)
+## Target platform 2: other wearables
 
-| Browser prototype | Glasses native |
-| --- | --- |
-| Tap "✋ still on it" | Say "yep" / head-nod (IMU gesture) |
-| Tap "✅ step done" | Say "done" / double-nod |
-| Tap "🧱 I'm stuck" | Say "I'm stuck" |
-| Captions panel | Open-ear audio (captions on paired phone for accessibility) |
-| `session-step` text | HUD glance line / spoken repeat on demand ("what am I doing?") |
-| localStorage | On-device app storage; nothing to cloud by default |
+- **Even Realities G2 + R1 ring** — the most credible *shippable-today* HUD
+  platform: official Even Hub app store, TypeScript SDK (`@evenrealities/
+  even_hub_sdk`), CLI + simulator, starter templates including an ASR
+  template that maps directly onto "glanceable one-liner + voice confirm."
+  Caveat: **no speakers** — G2 is display+mic; the feed routes to earbuds.
+- **Brilliant Labs Halo** (~$299) — best *hackable full-stack* option for the
+  activity-detection prototype: camera, mic, bone-conduction speakers, IMU,
+  on-device NPU, fully open source (Lua on-device; Python/Flutter/Web-BT
+  host SDKs).
+- **Vuzix Z100 / Ultralite** — mature open Android/iOS SDK for a
+  notification-HUD-class device (~48 h battery); good for the one-line cue.
+- **Solos AirGo** — audio-first glasses with a real (paid, ~$2k program) SDK;
+  the pure-audio fallback in glasses form.
+- **Halliday** — no public SDK found as of research date; not a target.
+
+## Fallback: phone + earbuds is ~90% of v1
+
+The whole loop runs with zero glasses hardware:
+
+- **iOS:** `audio` background mode legitimately supports continuous playback
+  and mic capture (`playAndRecord`); no third-party wake word at OS level —
+  use push-to-talk (AirPods squeeze) or an in-app wake engine. Siri App
+  Intents give "Hey Siri, start my quest" deep links.
+- **Android:** `MediaSessionService` for playback; mic needs a
+  `microphone`-type foreground service (visible notification; start rules
+  tightened in Android 14/15).
+- **Watch (Apple/Wear OS):** check-in surface — haptic tap to confirm,
+  Ongoing Activity / Smart Stack chip showing the current step.
+
+Architecture rule this all implies: **Sidequest is a phone-resident agent
+with interchangeable peripheral surfaces** (glasses audio, HUD, watch
+haptics, earbuds). The session engine doesn't know which body it's wearing.
+
+## Voice stack (current best options)
+
+- **Live companion voice:** Cartesia (Sonic — ~40–90 ms model-side TTFA) or
+  ElevenLabs Flash v2.5 (~75 ms model latency) via WebSocket streaming;
+  characterful persona voices are the product, so voice quality is a feature,
+  not a nicety. (PlayHT is gone — acquired by Meta 2025, API shut down.)
+- **Pre-rendered character content:** ElevenLabs v3 (audio tags, emotion) for
+  reward drops and persona set-pieces.
+- **Confirmation ASR (on-device, free):** Apple SpeechAnalyzer (iOS 26 —
+  on-device, no session limit) or Moonshine/whisper.cpp cross-platform.
+  Short-command parsing ("done", "stuck", "what's next") needs no cloud.
+- **Wake word:** skip at MVP — Picovoice Porcupine's commercial floor
+  (~$6k/yr) argues for push-to-talk/pinch instead.
+
+## Dopamine feed content pipeline
+
+- **Generated layer (built):** `server.mjs` generates interest-matched spoken
+  content with Claude — infinite, novel, and legally clean.
+- **Real-audio layer (roadmap):** Podcast Index (free, open, ~4M feeds) +
+  Taddy transcripts for segment discovery. Play segments as timestamp-seeks
+  into the original episode stream with attribution, and treat
+  Podcasting 2.0 `podcast:soundbite` / `podcast:chapters` tags as
+  first-class — publisher-defined segments are the licensing-safe primitive.
+  Programmatic clipping into our own experience is derivative use — avoid.
+  **Spotify's API is non-viable for new third parties** (2024–2026 access
+  restrictions); don't build on it.
 
 ## Activity detection ladder
 
-The "feed pauses when you stop" contingency needs an engagement signal. Build
-it as a ladder, cheapest signal first:
+Cheapest signal first; each rung is optional and opt-in:
 
-1. **Voice check-in response** (works everywhere, zero extra sensors)
-2. **IMU motion signature** — wrist/head movement consistent with the task vs.
-   sitting still scrolling
-3. **Egocentric camera spot-checks** (opt-in, on-device inference only):
-   frame classified against the current step ("dishes in view? hands moving?").
-   Low frame rate, no storage, no upload — a yes/no engagement bit.
-4. **Phone-state signal**: if the paired phone screen unlocks mid-step, that's
-   the drift event. The glasses know you picked up the portal.
+1. **Confirmation input** — voice "yep" / Neural Band pinch / watch tap
+   (works everywhere, zero extra sensors)
+2. **Motion signature** — IMU/motion via Web Apps sensors or phone/watch
+   motion: task-consistent movement vs. sitting still scrolling
+3. **Phone-state signal** — paired phone screen unlocks mid-step = the drift
+   event; the glasses know you picked up the portal
+4. **Egocentric camera spot-checks** (DAT camera, opt-in per quest) — low
+   frame rate, on-device inference only, yields a yes/no engagement bit;
+   nothing stored, nothing uploaded
 
 ## Privacy is load-bearing
 
-A body double hears your whole day. Non-negotiables, already reflected in the
-prototype's design:
+A body double hears your whole day, and the special-interest profile is some
+of the most intimate data an ADHD person has.
 
-- All engagement inference **on-device**; the cloud sees tasks ("dishes"), not
-  audio or camera frames.
-- Camera engagement checks are **opt-in per quest**, with the LED indicator
-  always honest.
-- The special-interest profile (the most intimate data ADHD'ers have) is
-  stored locally and never used for ads. It is the product's fuel, not its
-  inventory.
+- All engagement inference on-device; the cloud sees task titles, not audio
+  or frames.
+- Camera spot-checks opt-in per quest; hardware capture LED stays honest.
+- Interest profile stored locally, never used for ads; it is the product's
+  fuel, not its inventory.
+- The prototype already models this: state lives in `localStorage`; the AI
+  server sees only task titles and interest names.
 
 ## Porting plan
 
-1. **Phase 0 (this repo)**: browser HUD simulator — mechanics, personality,
-   contingency loop, content engine. ✅
-2. **Phase 1**: React Native companion app; port `session.js` engine verbatim
-   (it has no DOM dependencies); server-side LLM for task breakdown + persona
-   lines (the contracts are documented in `tasks.js`/`personas.js`); licensed
-   audio/podcast API for the dopamine feed.
-3. **Phase 2**: Wearables Device Access Toolkit integration — audio session,
-   mic check-ins, glance notifications on Display hardware.
-4. **Phase 3**: engagement ladder (IMU → opt-in camera spot-checks), watch
-   haptics, shared "co-working room" sessions (mutual body doubling with
-   friends — the research says mutuality is half the magic).
+1. **Phase 0 (this repo):** browser HUD simulator — mechanics, personality,
+   contingency loop, generative brain. ✅
+2. **Phase 1:** phone app (React Native or Swift/Kotlin); port the session
+   engine (no DOM dependencies); streaming TTS (Cartesia/ElevenLabs);
+   on-device ASR for confirmations; earbuds + watch surfaces. This alone is
+   a shippable product.
+3. **Phase 2:** Meta DAT release-channel beta — A2DP feed, brief HFP
+   check-in windows, Neural Band pinch confirm; Ray-Ban Display glance view
+   via `mwdat-display` and/or the Web Apps SDK. Even Hub build for G2 in
+   parallel (TS SDK, real store, fastest public distribution).
+4. **Phase 3:** activity-detection ladder (motion → phone-state → opt-in
+   camera spot-checks on DAT / Brilliant Halo), podcast-segment feed layer,
+   shared co-working rooms (mutual body doubling — the mutuality axis in
+   Eagle et al.'s model says doubling works best when it's reciprocal).
