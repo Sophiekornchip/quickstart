@@ -28,10 +28,11 @@ python3 -m http.server 8080
 # open http://localhost:8080
 ```
 
-**AI mode** — the same app with a generative brain (Claude). Task breakdowns,
-the dopamine feed, and persona banter are generated fresh instead of drawn
-from seed content — infinite novelty, which for this product is the active
-ingredient:
+**AI mode** — the same app with a live brain (Claude + web search). Task
+breakdowns and persona banter are generated fresh, and the dopamine feed is
+**sourced from the live internet**: current news, releases, and trends inside
+your interests, plus local happenings if you tell Doppel your city. Infinite
+novelty, which for this product is the active ingredient:
 
 ```bash
 cd body-double

@@ -258,16 +258,17 @@ session-locked feed. Novelty scoring, cliffhanger chunking, persona library
 to 8+, more quest types (laundry, mail/admin, meds routine), interest-decay
 detection.
 
-**Phase 2 — display + gestures.** Glance cards and Neural Band controls on
-Ray-Ban Display (`mwdat-display` and/or the Web Apps SDK — the HUD sim ports
-almost directly); richer milestone verification; multi-room quests; Even
-Realities G2 build via Even Hub for public distribution while Meta publishing
-opens.
+**Phase 2 — display, gestures, and co-op.** Glance cards and Neural Band
+controls on Ray-Ban Display (`mwdat-display` and/or the Web Apps SDK — the
+HUD sim ports almost directly); richer milestone verification; multi-room
+quests; **co-op quests** ("raid party: garage cleanout" — mutual body
+doubling is the strongest end of the mutuality axis); Even Realities G2
+build via Even Hub for public distribution while Meta publishing opens.
+Monetization switches on here: free through launch, then $9/mo.
 
 **Phase 3 — learning layer + the body.** Per-user reinforcement tuning;
-health-monitor integration (heart rate holds the zone → feed flows) extends
-the trainer loop to fitness; co-op quests ("raid party: garage cleanout" —
-mutual body doubling is the strongest end of the mutuality axis).
+health integration via **Google Health Connect** first (heart rate holds the
+zone → feed flows), Garmin API and Apple HealthKit after.
 
 ## Ethics, safety & the escape hatch
 
@@ -299,17 +300,37 @@ differentially vulnerable to manipulative design, so the bar is higher.)
 - **Data dignity.** Full export always (Dot's shutdown lesson); the
   interest profile is the product's fuel, never its inventory.
 
-## Open questions for Sophie
+## Decisions (Sophie, 2026-07-25)
 
-1. Content licensing strategy: generated-only at launch vs. podcast-segment
-   layer (Podcast Index/Taddy) vs. partnerships?
-2. Pricing: research says the accepted band is $8–15/mo with a real trial
-   before any paywall — where in the band?
-3. Treat jar: keep the trophy shelf (record of earned drops) or go fully
-   session-locked with no record at all?
-4. Co-op quests — Phase 3 or earlier? (Mutuality is half the magic in the
-   body-doubling literature.)
-5. First health-monitor platform for Phase 3 (Apple Watch / Garmin / Whoop)?
+1. **Content: a real feed, not generated-only.** The feed should draw on
+   what's actually happening — the internet, social platforms, and local
+   events — with generation as the narrator/glue, not the sole source.
+   Sourcing tiers (see "Feed sources" below for the engineering reality):
+   - **Tier 1, open internet (buildable now):** web search for current
+     news/releases/trends inside the user's interests *(shipped in the
+     prototype — the brain now searches the live web when generating feed
+     items)*; RSS/news feeds; Reddit; podcast segments via Podcast Index.
+   - **Tier 2, local happenings (buildable now):** event APIs (Eventbrite,
+     Ticketmaster Discovery), local news RSS, venue calendars — surfaced as
+     spoken items ("that ceramics night market you'd love is Saturday").
+     *(Prototype: tell Doppel your city and the feed includes local finds.)*
+   - **Tier 3, Instagram/TikTok (constrained):** ⚙️ neither platform offers
+     a public API for pulling arbitrary content into a third-party feed, and
+     re-serving their audio would violate their terms. The honest version:
+     Doppel *covers* what's trending in your interests (via web search) and
+     can deep-link posts for later, but it can't replay TikToks into your
+     glasses. If this tier becomes core, it's a partnership conversation.
+2. **Pricing: free at launch, then $9/month.** Sits in the research-backed
+   accepted band ($8–15); free period builds the habit before the paywall
+   (avoiding Tolan's pay-before-you-bond mistake).
+3. **Treat jar: trophy shelf stays** — a record of earned drops; new content
+   remains earned-only and session-assembled.
+4. **Co-op quests: pulled earlier → Phase 2.** The mutuality research
+   supports it ("raid party: garage cleanout").
+5. **Health platform: Google Health Connect first** — it's the easier of the
+   two named options (free on-device Android API, no partner-program
+   approval, and it aggregates Garmin/Fitbit/Samsung data anyway). Garmin's
+   own API follows if depth is needed. Apple HealthKit when iOS ships.
 
 ---
 

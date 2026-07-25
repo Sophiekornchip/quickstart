@@ -44,9 +44,16 @@ export function quest(title, name, personaStyle) {
   return post("/api/quest", { title, name, personaStyle }, 20000);
 }
 
-/** Fresh dopamine content. Returns {items, reward} or null. */
+let city = "";
+
+/** Optional home city — unlocks local happenings in the feed. */
+export function setCity(value) {
+  city = value || "";
+}
+
+/** Fresh dopamine content (web-search-backed when online). Returns {items, reward} or null. */
 export function feed(interests, count = 8) {
-  return post("/api/feed", { interests, count }, 30000);
+  return post("/api/feed", { interests, city, count }, 45000);
 }
 
 /** One generated persona line. Returns string or null. */

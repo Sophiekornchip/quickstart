@@ -68,7 +68,9 @@ function renderInterestPicker() {
 
 $("btn-start").onclick = () => {
   const name = $("user-name").value.trim() || "friend";
-  state.update({ name });
+  const city = $("user-city").value.trim();
+  state.update({ name, city });
+  brain.setCity(city);
   const s = state.get();
   if (!s.interests.length) state.update({ interests: ["space"] });
   goHome(true);
@@ -299,8 +301,10 @@ $("btn-mute").onclick = () => {
   renderInterestPicker();
   renderSickDay();
   refreshGlance();
+  brain.setCity(s.city);
   if (s.name) {
     $("user-name").value = s.name;
+    $("user-city").value = s.city || "";
     goHome(true);
   } else {
     show("onboard");

@@ -97,8 +97,10 @@ a fixed content library is Dubbii's ceiling.)
 
 ## Pricing & trust posture
 
-- Target **$8–15/mo** — the accepted band (Focusmate $8, Sukha $10, Deepwrk
-  $12) vs. the resented band (Flow Club $40, Numo $15–16 with churn).
+- **Decision: free at launch, then $9/mo** — inside the accepted band
+  (Focusmate $8, Sukha $10, Deepwrk $12) vs. the resented band (Flow Club
+  $40, Numo $15–16 with churn); the free period builds the habit before the
+  paywall.
 - Real trial before any paywall (Tolan's pre-relationship paywall is its top
   complaint).
 - Full data export, always (Dot's lesson).

@@ -5,6 +5,7 @@ const KEY = "sidequest.v1";
 
 const defaults = () => ({
   name: "",
+  city: "",               // optional — unlocks local happenings in the feed
   interests: [],
   xp: 0,
   streak: 0,

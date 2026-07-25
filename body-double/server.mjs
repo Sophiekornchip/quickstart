@@ -97,20 +97,31 @@ async function aiQuest({ title, name, personaStyle }) {
   return firstJson(response);
 }
 
-async function aiFeed({ interests, count = 8 }) {
+async function aiFeed({ interests, city, count = 8 }) {
+  // The feed is sourced, not just generated: web search pulls in what's
+  // actually happening — news, releases, trends inside the user's interests,
+  // and local happenings when a city is set. Novelty guarantee: fresh beats
+  // evergreen.
   const response = await client.messages.create({
     model: MODEL,
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
+    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 5 }],
     output_config: { format: { type: "json_schema", schema: FEED_SCHEMA } },
     messages: [
       {
         role: "user",
-        content: `Generate ${count} dopamine-feed items for someone whose special interests are: ${interests.join(", ")}. Avoid the most famous/overused facts — dig for the deliciously obscure.`,
+        content:
+          `Generate ${count} dopamine-feed items for someone whose special interests are: ${interests.join(", ")}. ` +
+          `Use web search to make at least half of them CURRENT — news, new releases, discoveries, or trends from the last few weeks in those interests. ` +
+          (city
+            ? `The user is in ${city}: include 1-2 local happenings (events, openings, markets) that match their interests, with when/where. `
+            : "") +
+          `The rest: deliciously obscure evergreen material — avoid the famous overused facts. Each item must be self-contained when spoken aloud.`,
       },
     ],
   });
-  return firstJson(response);
+  return lastJson(response);
 }
 
 async function aiBanter({ persona, kind, questTitle, step, name }) {
@@ -132,6 +143,13 @@ async function aiBanter({ persona, kind, questTitle, step, name }) {
 function firstJson(response) {
   const text = response.content.find((b) => b.type === "text")?.text ?? "{}";
   return JSON.parse(text);
+}
+
+// With server tools in play the response interleaves search blocks with
+// text; the schema-conforming JSON is the final text block.
+function lastJson(response) {
+  const texts = response.content.filter((b) => b.type === "text");
+  return JSON.parse(texts[texts.length - 1]?.text ?? "{}");
 }
 
 // ---- http plumbing ----
